@@ -3,14 +3,14 @@ package graphs;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.BitSet;
+import java.util.*;
 
 public class BasicGraph {
 
     // made with chatGPT
 
-    private BitSet[] adjacencyList;
-    private int numVertices;
+    protected BitSet[] adjacencyList;
+    protected int numVertices;
 
     public BasicGraph(String graphFilename) {
         try (BufferedReader br = new BufferedReader(new FileReader(graphFilename))) {
@@ -63,6 +63,24 @@ public class BasicGraph {
         }
     }
 
+    // Method to order vertices based on their degrees
+    public List<Integer> orderByDegree() {
+        List<Integer> vertices = new ArrayList<>();
+        for (int i = 0; i < numVertices; i++) {
+            vertices.add(i);
+        }
+
+        // Sort vertices based on their degrees (largest degree first)
+        vertices.sort(Comparator.comparingInt(this::degree).reversed());
+
+        return vertices;
+    }
+
+    // Method to calculate the degree of a vertex
+    public int degree(int vertex) {
+        return adjacencyList[vertex].cardinality();
+    }
+
     public static void main(String[] args) {
         BasicGraph graph = new BasicGraph("DIMACS_subset_ascii/C125.9.clq");
 
@@ -70,5 +88,6 @@ public class BasicGraph {
         for (int i = 0; i < graph.numVertices; i++) {
             System.out.println("Vertex " + i + ": " + graph.adjacencyList[i]);
         }
+        System.out.println(graph.orderByDegree());
     }
 }
