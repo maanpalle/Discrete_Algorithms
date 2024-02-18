@@ -88,6 +88,27 @@ public class BasicGraph {
         return adjacencyList[vertex];
     }
 
+    public boolean isClique(BitSet vertices) {
+        boolean clique = true;
+        int card = vertices.cardinality();
+        int id = vertices.nextSetBit(0);
+        BitSet check = (BitSet) vertices.clone();
+        while (id != 0 && clique) {
+            check.and(adjacencyList[id]);
+            clique = (check.cardinality() == card);
+            id = vertices.nextSetBit(id + 1);
+        }
+        return clique;
+    }
+
+    public boolean isClique(int[] vertices) {
+        BitSet test = new BitSet(numVertices);
+        for (int i : vertices) {
+            test.set(i);
+        }
+        return isClique(test);
+    }
+
     public static void main(String[] args) {
         BasicGraph graph = new BasicGraph("DIMACS_subset_ascii/C125.9.clq");
         System.out.println("Adjacency information:");
