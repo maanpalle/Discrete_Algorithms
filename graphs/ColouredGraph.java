@@ -16,10 +16,10 @@ public class ColouredGraph extends BasicGraph {
     public void assignColours() {
         BitSet isColoured = new BitSet(numVertices);
         List<Integer> order = orderByDegree();
-        while(isColoured.cardinality() != numVertices) {
+        while (isColoured.cardinality() != numVertices) {
             BitSet newColour = new BitSet(numVertices);
-            for(Integer id : order) {
-                if(!isColoured.get(id) && !adjacencyList[id].intersects(newColour)) {
+            for (Integer id : order) {
+                if (!isColoured.get(id) && !adjacencyList[id].intersects(newColour)) {
                     newColour.set(id);
                 }
             }
@@ -30,7 +30,7 @@ public class ColouredGraph extends BasicGraph {
 
     public List<Integer> orderByColour() {
 
-        if(colours.isEmpty()) {
+        if (colours.isEmpty()) {
             assignColours();
         }
 

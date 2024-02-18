@@ -76,14 +76,21 @@ public class BasicGraph {
         return vertices;
     }
 
+    public int getNumVertices() {
+        return numVertices;
+    }
+
     // Method to calculate the degree of a vertex
     public int degree(int vertex) {
         return adjacencyList[vertex].cardinality();
     }
 
+    public BitSet getAdjacencyList(int vertex) {
+        return adjacencyList[vertex];
+    }
+
     public static void main(String[] args) {
         BasicGraph graph = new BasicGraph("DIMACS_subset_ascii/C125.9.clq");
-
         System.out.println("Adjacency information:");
         for (int i = 0; i < graph.numVertices; i++) {
             System.out.println("Vertex " + i + ": " + graph.adjacencyList[i]);
