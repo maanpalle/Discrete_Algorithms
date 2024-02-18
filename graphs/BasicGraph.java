@@ -14,21 +14,20 @@ public class BasicGraph {
 
     public BasicGraph(String graphFilename) {
         try (BufferedReader br = new BufferedReader(new FileReader(graphFilename))) {
-            String line;
+            String line = br.readLine();
+            while (!line.startsWith("p")) {
+                line = br.readLine();
+            }
+            numVertices = Integer.parseInt(line.split(" ")[2]);
+            adjacencyList = new BitSet[numVertices];
+            for (int i = 0; i < numVertices; i++) {
+                adjacencyList[i] = new BitSet(numVertices);
+            }
             while ((line = br.readLine()) != null) {
-                if (line.trim().startsWith("p")) {
-                    String[] parts = line.split("\\s+");
-                    numVertices = Integer.parseInt(parts[2]);
-                    adjacencyList = new BitSet[numVertices];
-                    for (int i = 0; i < numVertices; i++) {
-                        adjacencyList[i] = new BitSet(numVertices);
-                    }
-                } else if (line.startsWith("e")) {
-                    String[] parts = line.split("\\s+");
-                    int source = Integer.parseInt(parts[1]) - 1; // DIMACS vertices start from 1
-                    int destination = Integer.parseInt(parts[2]) - 1; // DIMACS vertices start from 1
-                    addEdge(source, destination);
-                }
+                String[] parts = line.split(" ");
+                int source = Integer.parseInt(parts[1]) - 1; // DIMACS vertices start from 1
+                int destination = Integer.parseInt(parts[2]) - 1; // DIMACS vertices start from 1
+                addEdge(source, destination);
             }
         } catch (IOException e) {
             e.printStackTrace();
