@@ -14,30 +14,30 @@ public class BranchAndBound {
         System.out.println(end - start);
     }
 
-    public static BitSet MaxClique(BitSet clique, BitSet remaining, BitSet biggestClique, BitSet adjacentVertices, BasicGraph graph) {
-        remaining.and(adjacentVertices);
+    public static BitSet MaxClique(BitSet clique, BitSet remaining, BitSet biggestClique, BasicGraph graph) {
         int id = remaining.nextSetBit(0);
         while (id != -1 && clique.cardinality() + remaining.cardinality() > biggestClique.cardinality()) {
             clique.set(id);
             remaining.clear(id);
-            BitSet maxClique = MaxClique(clique, (BitSet) remaining.clone(), biggestClique, graph.getAdjacencyList(id), graph);
+            BitSet newRemaining = (BitSet) remaining.clone();
+            newRemaining.and(graph.getAdjacencyList(id));
+            BitSet maxClique = clique;
+            if (newRemaining.cardinality() != 0) {
+                maxClique = MaxClique(clique, newRemaining, biggestClique, graph);
+            }
             if (maxClique.cardinality() > biggestClique.cardinality()) {
                 biggestClique = (BitSet) maxClique.clone();
             }
             clique.clear(id);
             id = remaining.nextSetBit(id);
         }
-        if (clique.cardinality() > biggestClique.cardinality()) {
-            biggestClique = (BitSet) clique.clone();
-        }
         return biggestClique;
     }
 
     public static BitSet MaxClique(BasicGraph graph) {
-        int vertices = graph.getNumVertices();
-        BitSet empty = new BitSet(vertices);
-        BitSet full = new BitSet(vertices);
-        full.set(0, vertices);
-        return MaxClique(empty, full, (BitSet) empty.clone(), (BitSet) full.clone(), graph);
+        int numVertices = graph.getNumVertices();
+        BitSet allVertices = new BitSet(numVertices);
+        allVertices.set(0, numVertices);
+        return MaxClique(new BitSet(numVertices), allVertices, new BitSet(numVertices), graph);
     }
 }
