@@ -1,8 +1,11 @@
-import graphs.BasicGraph;
+package be.ugent;
+
+
+import be.ugent.graphs.BasicGraph;
 
 import java.util.BitSet;
 
-public class BranchAndBound {
+public class BranchAndBound implements MaximumCliqueAlgorithm {
     public static void main(String[] args) {
         long start = System.currentTimeMillis();
         BasicGraph graph = new BasicGraph("DIMACS_subset_ascii/C125.9.clq");
@@ -20,7 +23,7 @@ public class BranchAndBound {
             clique.set(id);
             remaining.clear(id);
             BitSet newRemaining = (BitSet) remaining.clone();
-            newRemaining.and(graph.getAdjacencyList(id));
+            newRemaining.and(graph.getAdjacencyBitSet(id));
             BitSet maxClique = clique;
             if (newRemaining.cardinality() != 0) {
                 maxClique = MaxClique(clique, newRemaining, biggestClique, graph);
@@ -39,5 +42,10 @@ public class BranchAndBound {
         BitSet allVertices = new BitSet(numVertices);
         allVertices.set(0, numVertices);
         return MaxClique(new BitSet(numVertices), allVertices, new BitSet(numVertices), graph);
+    }
+
+    @Override
+    public BitSet calculateMaxClique(BasicGraph graph) {
+        return null;
     }
 }
