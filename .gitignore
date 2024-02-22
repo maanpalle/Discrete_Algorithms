@@ -26,3 +26,5 @@ replay_pid*
 .idea
 *.iml
 out
+/project1/build/
+/project1/.gradle/
