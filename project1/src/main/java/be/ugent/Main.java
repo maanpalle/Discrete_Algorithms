@@ -3,7 +3,6 @@ package be.ugent;
 import be.ugent.graphs.BasicGraph;
 
 
-import be.ugent.graphs.OstergardBranchAndBound;
 import org.apache.commons.cli.*;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;

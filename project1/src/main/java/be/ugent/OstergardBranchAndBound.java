@@ -1,7 +1,8 @@
-package be.ugent.graphs;
+package be.ugent;
 
 
-import be.ugent.MaximumCliqueAlgorithm;
+import be.ugent.graphs.BasicGraph;
+import be.ugent.graphs.ColouredGraph;
 
 import java.util.BitSet;
 
