@@ -3,6 +3,7 @@ package be.ugent;
 import be.ugent.graphs.BasicGraph;
 
 
+import be.ugent.graphs.OstergardBranchAndBound;
 import org.apache.commons.cli.*;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
@@ -65,6 +66,10 @@ public class Main {
 				case "BAB":
 					logger.info("Using branch and bound algorithm");
 					maximumCliqueAlgorithm = new BranchAndBound();
+					break;
+				case "OBAB":
+					logger.info("Using Ostergard's branch and bound algorithm");
+					maximumCliqueAlgorithm = new OstergardBranchAndBound();
 					break;
 				case "BLS":
 					logger.info("Using coloured graph algorithm");

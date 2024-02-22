@@ -23,6 +23,11 @@ public class BasicGraph {
 	protected BitSet[] adjacencyList;
 	protected int numVertices;
 
+	public BasicGraph(BasicGraph graph) {
+		this.adjacencyList = graph.adjacencyList;
+		this.numVertices = graph.numVertices;
+	}
+
 	public BasicGraph(String graphFilename) {
 		int expectedNumberOfEdges = -1; // Initialize with a sentinel value
 		int actualNumberOfEdges;
