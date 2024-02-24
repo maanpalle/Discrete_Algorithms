@@ -156,8 +156,9 @@ public class BasicGraph {
 		int card = vertices.cardinality();
 		int id = vertices.nextSetBit(0);
 		BitSet check = (BitSet) vertices.clone();
-		while (id != 0 && clique) {
+		while (id != -1 && clique) {
 			check.and(adjacencyList[id]);
+			check.set(id);
 			clique = (check.cardinality() == card);
 			id = vertices.nextSetBit(id + 1);
 		}
