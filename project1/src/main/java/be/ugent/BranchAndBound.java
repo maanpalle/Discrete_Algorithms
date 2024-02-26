@@ -34,16 +34,19 @@ public class BranchAndBound implements MaximumCliqueAlgorithm {
     public BitSet calculateMaxClique(BasicGraph graph) {
         this.graph = graph;
         int numVertices = graph.getNumVertices();
-        int numEdges = graph.getNumEdges();
-        int minSize = Math.ceilDiv(numVertices * numVertices, numVertices * numVertices - 2 * numEdges);
+        double sum = 0;
+        for (int i = 0; i < numVertices; i++) {
+            sum += (1.0 / (numVertices - graph.degree(i)));
+        }
+        int minSize = (int) Math.ceil(sum);
         biggestClique = new BitSet(numVertices);
         biggestClique.set(0, minSize - 1);
         BitSet allVertices = new BitSet(numVertices);
         allVertices.set(0, numVertices);
-        colors = greedyColor(allVertices);
         List<Integer> vertices = graph.orderByDegree();
         Collections.reverse(vertices);
         newAdjacencyList(vertices);
+        colors = greedyColor(allVertices);
         BitSet maxClique = MaxClique(new BitSet(numVertices), allVertices);
         BitSet solution = new BitSet(numVertices);
         int id = maxClique.nextSetBit(0);
@@ -73,11 +76,10 @@ public class BranchAndBound implements MaximumCliqueAlgorithm {
 
     private int[] greedyColor(BitSet vert) {
         int[] colors = new int[graph.getNumVertices()];
-        List<Integer> vertices = graph.orderByDegree();
-        for (int i = 0; i < graph.getNumVertices(); i++) {
-            if (vert.get(vertices.get(i))) {
+        for (int i = graph.getNumVertices() - 1; i >= 0; i--) {
+            if (vert.get(i)) {
                 SortedSet<Integer> adjacentColors = new TreeSet<>();
-                BitSet adjacentVertices = adjacencyList[vertices.get(i)];
+                BitSet adjacentVertices = adjacencyList[i];
                 int id = adjacentVertices.nextSetBit(0);
                 while (id != -1) {
                     adjacentColors.add(colors[id]);
@@ -87,7 +89,7 @@ public class BranchAndBound implements MaximumCliqueAlgorithm {
                 while (adjacentColors.contains(color)) {
                     color++;
                 }
-                colors[vertices.get(i)] = color;
+                colors[i] = color;
             }
         }
         return colors;
