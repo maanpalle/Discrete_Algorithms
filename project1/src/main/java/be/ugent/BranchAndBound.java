@@ -2,18 +2,17 @@ package be.ugent;
 
 import be.ugent.graphs.BasicGraph;
 
-import java.util.BitSet;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 public class BranchAndBound implements MaximumCliqueAlgorithm {
     private BitSet biggestClique;
     private BasicGraph graph;
     private BitSet[] adjacencyList;
+    private int[] colors;
 
     private BitSet MaxClique(BitSet clique, BitSet remaining) {
         int id = remaining.nextSetBit(0);
-        while (id != -1 && clique.cardinality() + remaining.cardinality() > biggestClique.cardinality()) {
+        while (id != -1 && clique.cardinality() + countColors(remaining) > biggestClique.cardinality()) {
             clique.set(id);
             remaining.clear(id);
             BitSet newRemaining = (BitSet) remaining.clone();
@@ -35,18 +34,22 @@ public class BranchAndBound implements MaximumCliqueAlgorithm {
     public BitSet calculateMaxClique(BasicGraph graph) {
         this.graph = graph;
         int numVertices = graph.getNumVertices();
+        int numEdges = graph.getNumEdges();
+        int minSize = Math.ceilDiv(numVertices * numVertices, numVertices * numVertices - 2 * numEdges);
         biggestClique = new BitSet(numVertices);
+        biggestClique.set(0, minSize - 1);
         BitSet allVertices = new BitSet(numVertices);
         allVertices.set(0, numVertices);
+        colors = greedyColor(allVertices);
         List<Integer> vertices = graph.orderByDegree();
         Collections.reverse(vertices);
         newAdjacencyList(vertices);
         BitSet maxClique = MaxClique(new BitSet(numVertices), allVertices);
         BitSet solution = new BitSet(numVertices);
-        for (int i = 0; i < numVertices; i++) {
-            if (maxClique.get(i)) {
-                solution.set(vertices.get(i));
-            }
+        int id = maxClique.nextSetBit(0);
+        while (id != -1) {
+            solution.set(vertices.get(id));
+            id = maxClique.nextSetBit(id + 1);
         }
         return solution;
     }
@@ -66,6 +69,42 @@ public class BranchAndBound implements MaximumCliqueAlgorithm {
                 }
             }
         }
+    }
+
+    private int[] greedyColor(BitSet vert) {
+        int[] colors = new int[graph.getNumVertices()];
+        List<Integer> vertices = graph.orderByDegree();
+        for (int i = 0; i < graph.getNumVertices(); i++) {
+            if (vert.get(vertices.get(i))) {
+                SortedSet<Integer> adjacentColors = new TreeSet<>();
+                BitSet adjacentVertices = adjacencyList[vertices.get(i)];
+                int id = adjacentVertices.nextSetBit(0);
+                while (id != -1) {
+                    adjacentColors.add(colors[id]);
+                    id = adjacentVertices.nextSetBit(id + 1);
+                }
+                int color = 1;
+                while (adjacentColors.contains(color)) {
+                    color++;
+                }
+                colors[vertices.get(i)] = color;
+            }
+        }
+        return colors;
+    }
+
+    private int countColors(BitSet vertices) {
+        int count = 0;
+        BitSet color = new BitSet();
+        int id = vertices.nextSetBit(0);
+        while (id != -1) {
+            if (!color.get(colors[id])) {
+                count++;
+                color.set(colors[id]);
+            }
+            id = vertices.nextSetBit(id + 1);
+        }
+        return count;
     }
 
     public static void main(String[] args) {
