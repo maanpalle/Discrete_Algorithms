@@ -19,13 +19,14 @@ public class BranchAndBound implements MaximumCliqueAlgorithm {
             newRemaining.and(gr.getAdjacencyBitSet(id));
             BitSet maxClique = clique;
             if (newRemaining.cardinality() != 0) {
-                maxClique = MaxClique(clique, newRemaining, colors);
+                maxClique = MaxClique(clique, newRemaining, greedyColor(newRemaining));
             }
             if (maxClique.cardinality() > biggestClique.cardinality()) {
                 biggestClique = (BitSet) maxClique.clone();
             }
             clique.clear(id);
             id = remaining.nextSetBit(id);
+            colors = greedyColor(remaining);
         }
         return biggestClique;
     }
@@ -45,7 +46,6 @@ public class BranchAndBound implements MaximumCliqueAlgorithm {
         BitSet allVertices = new BitSet(numVertices);
         allVertices.set(0, numVertices);
         List<BitSet> colors = greedyColor(allVertices);
-        System.out.println(colors.size());
         BitSet maxClique = MaxClique(new BitSet(numVertices), allVertices, colors);
         BitSet solution = new BitSet(numVertices);
         int id = maxClique.nextSetBit(0);
@@ -83,14 +83,30 @@ public class BranchAndBound implements MaximumCliqueAlgorithm {
         return count;
     }
 
-    public static void main(String[] args) {
-        long start = System.currentTimeMillis();
-        BranchAndBound bAB = new BranchAndBound();
-        BasicGraph graph = new BasicGraph("DIMACS_subset_ascii/C125.9.clq");
-        BitSet maxClique = bAB.calculateMaxClique(graph);
+    private void test(BasicGraph graph){
+        BitSet maxClique = calculateMaxClique(graph);
         System.out.println(maxClique);
         System.out.println(maxClique.cardinality());
         System.out.println(graph.isClique(maxClique));
+    }
+
+    public static void main(String[] args) {
+        long start = System.currentTimeMillis();
+        BranchAndBound bAB = new BranchAndBound();
+        bAB.test(new BasicGraph("DIMACS_subset_ascii/C125.9.clq"));
+//        bAB.test(new BasicGraph("DIMACS_subset_ascii/DSJC500_5.clq"));
+//        bAB.test(new BasicGraph("DIMACS_subset_ascii/MANN_a27.clq"));
+//        bAB.test(new BasicGraph("DIMACS_subset_ascii/brock200_2.clq"));
+//        bAB.test(new BasicGraph("DIMACS_subset_ascii/brock200_4.clq"));
+//        bAB.test(new BasicGraph("DIMACS_subset_ascii/gen200_p0.9_44.clq"));
+//        bAB.test(new BasicGraph("DIMACS_subset_ascii/gen200_p0.9_55.clq"));
+//        bAB.test(new BasicGraph("DIMACS_subset_ascii/hamming8-4.clq"));
+//        bAB.test(new BasicGraph("DIMACS_subset_ascii/keller4.clq"));
+//        bAB.test(new BasicGraph("DIMACS_subset_ascii/p_hat300-1.clq"));
+//        bAB.test(new BasicGraph("DIMACS_subset_ascii/p_hat300-2.clq"));
+//        bAB.test(new BasicGraph("DIMACS_subset_ascii/p_hat300-3.clq"));
+//        bAB.test(new BasicGraph("DIMACS_subset_ascii/p_hat700-1.clq"));
+//        bAB.test(new BasicGraph("DIMACS_subset_ascii/p_hat1500-1.clq"));
         long end = System.currentTimeMillis();
         System.out.println(end - start);
     }
