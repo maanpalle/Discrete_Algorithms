@@ -12,8 +12,10 @@ public class BranchAndBound implements MaximumCliqueAlgorithm {
     private BasicGraph gr;
 
     private BitSet MaxClique(BitSet clique, BitSet remaining) {
-        int id = remaining.nextSetBit(0);
-        while (id != -1 && clique.cardinality() + countColors(remaining) > biggestClique.cardinality()) {
+        List<BitSet> colors = greedyColor(remaining);
+        BitSet lastColor = colors.get(colors.size() - 1);
+        int id = lastColor.nextSetBit(0);
+        while (id != -1 && clique.cardinality() + colors.size() > biggestClique.cardinality()) {
             clique.set(id);
             remaining.clear(id);
             BitSet newRemaining = (BitSet) remaining.clone();
@@ -26,7 +28,12 @@ public class BranchAndBound implements MaximumCliqueAlgorithm {
                 biggestClique = (BitSet) maxClique.clone();
             }
             clique.clear(id);
-            id = remaining.nextSetBit(id + 1);
+            lastColor.clear(id);
+            if (lastColor.cardinality() == 0 && colors.size() != 1) {
+                colors.remove(colors.size() - 1);
+                lastColor = colors.get(colors.size() - 1);
+            }
+            id = lastColor.nextSetBit(0);
         }
         return biggestClique;
     }
@@ -52,10 +59,6 @@ public class BranchAndBound implements MaximumCliqueAlgorithm {
             id = maxClique.nextSetBit(id + 1);
         }
         return solution;
-    }
-
-    private int countColors(BitSet vert) {
-        return greedyColor(vert).size();
     }
 
     private List<BitSet> greedyColor(BitSet vert) {
