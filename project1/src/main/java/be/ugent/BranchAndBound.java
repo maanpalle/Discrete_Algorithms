@@ -4,6 +4,7 @@ import be.ugent.graphs.BasicGraph;
 
 import java.util.ArrayList;
 import java.util.BitSet;
+import java.util.Comparator;
 import java.util.List;
 
 public class BranchAndBound implements MaximumCliqueAlgorithm {
@@ -12,7 +13,7 @@ public class BranchAndBound implements MaximumCliqueAlgorithm {
 
     private BitSet MaxClique(BitSet clique, BitSet remaining) {
         int id = remaining.nextSetBit(0);
-        while (id != -1 && clique.cardinality() + greedyColor(remaining) > biggestClique.cardinality()) {
+        while (id != -1 && clique.cardinality() + countColors(remaining) > biggestClique.cardinality()) {
             clique.set(id);
             remaining.clear(id);
             BitSet newRemaining = (BitSet) remaining.clone();
@@ -37,6 +38,10 @@ public class BranchAndBound implements MaximumCliqueAlgorithm {
         gr.reorderVertices(vertices);
         int numVertices = vertices.size();
         greedyClique();
+        BitSet greedyColorClique = greedyColorClique();
+        if (greedyColorClique.cardinality() > biggestClique.cardinality()) {
+            biggestClique = greedyColorClique;
+        }
         BitSet allVertices = new BitSet(numVertices);
         allVertices.set(0, numVertices);
         BitSet maxClique = MaxClique(new BitSet(numVertices), allVertices);
@@ -49,7 +54,11 @@ public class BranchAndBound implements MaximumCliqueAlgorithm {
         return solution;
     }
 
-    private int greedyColor(BitSet vert) {
+    private int countColors(BitSet vert) {
+        return greedyColor(vert).size();
+    }
+
+    private List<BitSet> greedyColor(BitSet vert) {
         List<BitSet> colors = new ArrayList<>();
         int id = vert.previousSetBit(gr.getNumVertices());
         while (id != -1) {
@@ -63,7 +72,29 @@ public class BranchAndBound implements MaximumCliqueAlgorithm {
             colors.get(color).set(id);
             id = vert.previousSetBit(id - 1);
         }
-        return colors.size();
+        return colors;
+    }
+
+    private int nextColoredVertex(BitSet vert) {
+        if (vert.cardinality() == 0) {
+            return -1;
+        }
+        List<BitSet> colors = greedyColor(vert);
+        colors.sort(Comparator.comparingInt(BitSet::cardinality));
+        return colors.get(0).previousSetBit(gr.getNumVertices());
+    }
+
+    private BitSet greedyColorClique() {
+        BitSet remaining = new BitSet(gr.getNumVertices());
+        remaining.set(0, gr.getNumVertices());
+        BitSet biggestClique = new BitSet(gr.getNumVertices());
+        int id = nextColoredVertex(remaining);
+        while (id != -1) {
+            biggestClique.set(id);
+            remaining.and(gr.getAdjacencyBitSet(id));
+            id = nextColoredVertex(remaining);
+        }
+        return biggestClique;
     }
 
     private void greedyClique() {
