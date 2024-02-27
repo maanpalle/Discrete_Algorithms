@@ -17,7 +17,6 @@ public class BasicGraph {
 
 	private static final Logger logger = LogManager.getLogger(BasicGraph.class);
 
-
 	// made with chatGPT
 
 	protected BitSet[] adjacencyList;
@@ -86,7 +85,6 @@ public class BasicGraph {
 			logger.error("Exiting...");
 			System.exit(1);
 		}
-
 	}
 
 	public void addEdge(int source, int destination) {
@@ -130,6 +128,27 @@ public class BasicGraph {
 		return vertices;
 	}
 
+	// Method to order vertices based on their degrees, smallest to largest
+	public List<Integer> orderByUpwardsDegree() {
+		List<Integer> vertices = new ArrayList<>();
+		for (int i = 0; i < numVertices; i++) {
+			vertices.add(i);
+		}
+		vertices.sort(Comparator.comparingInt(this::degree));
+		return vertices;
+	}
+
+	// Order vertices based on their relative degree in the given BitSet
+    public List<Integer> orderByRelativeDegree(BitSet vert) {
+        List<Integer> vertices = new ArrayList<>();
+        for (int i = 0; i < numVertices; i++) {
+            vertices.add(i);
+        }
+        // Sort vertices based on their degrees (largest degree first)
+        vertices.sort((v1, v2) -> (relativeDegree(v2, vert) - relativeDegree(v1, vert)));
+        return vertices;
+    }
+
 	public int getNumVertices() {
 		return numVertices;
 	}
@@ -146,6 +165,13 @@ public class BasicGraph {
 	public int degree(int vertex) {
 		return adjacencyList[vertex].cardinality();
 	}
+
+	// Method to calculate the degree of a vertex in the given BitSet of vertices
+    public int relativeDegree(int vertex,BitSet vertices){
+        BitSet check = (BitSet) vertices.clone();
+        check.and(adjacencyList[vertex]);
+        return check.cardinality();
+    }
 
 	public BitSet getAdjacencyBitSet(int vertex) {
 		return adjacencyList[vertex];
@@ -187,5 +213,24 @@ public class BasicGraph {
 
 	public boolean isAdjacent(int i, int j) {
 		return adjacencyList[i].get(j);
+	}
+
+	// Reorders the vertices of the graph in the order given by the List parameter
+	public void reorderVertices(List<Integer> vertices){
+		BitSet[] newAdjacencyList = new BitSet[vertices.size()];
+		for (int i = 0; i < vertices.size(); i++) {
+			newAdjacencyList[i] = new BitSet(vertices.size());
+		}
+		for (int j = 0; j < vertices.size(); j++) {
+			int vertexJ = vertices.get(j);
+			for (int k = 0; k < vertices.size(); k++) {
+				int vertexK = vertices.get(k);
+				if (isAdjacent(vertexJ, vertexK)) {
+					newAdjacencyList[j].set(k);
+					newAdjacencyList[k].set(j);
+				}
+			}
+		}
+		this.adjacencyList=newAdjacencyList;
 	}
 }
