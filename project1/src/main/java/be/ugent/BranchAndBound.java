@@ -2,24 +2,24 @@ package be.ugent;
 
 import be.ugent.graphs.BasicGraph;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.BitSet;
+import java.util.List;
 
 public class BranchAndBound implements MaximumCliqueAlgorithm {
     private BitSet biggestClique;
-    private BasicGraph graph;
-    private BitSet[] adjacencyList;
-    private List<BitSet> colors;
+    private BasicGraph gr;
 
-    private BitSet MaxClique(BitSet clique, BitSet remaining) {
+    private BitSet MaxClique(BitSet clique, BitSet remaining, List<BitSet> colors) {
         int id = remaining.nextSetBit(0);
-        while (id != -1 && clique.cardinality() + countColors(remaining) > biggestClique.cardinality()) {
+        while (id != -1 && clique.cardinality() + countColors(remaining, colors) > biggestClique.cardinality()) {
             clique.set(id);
             remaining.clear(id);
             BitSet newRemaining = (BitSet) remaining.clone();
-            newRemaining.and(adjacencyList[id]);
+            newRemaining.and(gr.getAdjacencyBitSet(id));
             BitSet maxClique = clique;
             if (newRemaining.cardinality() != 0) {
-                maxClique = MaxClique(clique, newRemaining);
+                maxClique = MaxClique(clique, newRemaining, colors);
             }
             if (maxClique.cardinality() > biggestClique.cardinality()) {
                 biggestClique = (BitSet) maxClique.clone();
@@ -32,22 +32,21 @@ public class BranchAndBound implements MaximumCliqueAlgorithm {
 
     @Override
     public BitSet calculateMaxClique(BasicGraph graph) {
-        this.graph = graph;
-        int numVertices = graph.getNumVertices();
-        double sum = 0;
+        this.gr = new BasicGraph(graph);
+        List<Integer> vertices = gr.orderByUpwardsDegree();
+        gr.reorderVertices(vertices);
+        int numVertices = vertices.size();
+        float minSize = 0;
         for (int i = 0; i < numVertices; i++) {
-            sum += (1.0 / (numVertices - graph.degree(i)));
+            minSize += (1.0f / (numVertices - gr.degree(i)));
         }
-        int minSize = (int) Math.ceil(sum);
         biggestClique = new BitSet(numVertices);
-        biggestClique.set(0, minSize - 1);
+        biggestClique.set(0, (int) minSize);
         BitSet allVertices = new BitSet(numVertices);
         allVertices.set(0, numVertices);
-        List<Integer> vertices = graph.orderByDegree();
-        Collections.reverse(vertices);
-        newAdjacencyList(vertices);
-        greedyColor(allVertices);
-        BitSet maxClique = MaxClique(new BitSet(numVertices), allVertices);
+        List<BitSet> colors = greedyColor(allVertices);
+        System.out.println(colors.size());
+        BitSet maxClique = MaxClique(new BitSet(numVertices), allVertices, colors);
         BitSet solution = new BitSet(numVertices);
         int id = maxClique.nextSetBit(0);
         while (id != -1) {
@@ -57,40 +56,24 @@ public class BranchAndBound implements MaximumCliqueAlgorithm {
         return solution;
     }
 
-    private void newAdjacencyList(List<Integer> vertices) {
-        adjacencyList = new BitSet[vertices.size()];
-        for (int i = 0; i < vertices.size(); i++) {
-            adjacencyList[i] = new BitSet(vertices.size());
-        }
-        for (int j = 0; j < vertices.size(); j++) {
-            int vertexJ = vertices.get(j);
-            for (int k = 0; k < vertices.size(); k++) {
-                int vertexK = vertices.get(k);
-                if (graph.isAdjacent(vertexJ, vertexK)) {
-                    adjacencyList[j].set(k);
-                    adjacencyList[k].set(j);
-                }
-            }
-        }
-    }
-
-    private void greedyColor(BitSet vert) {
-        colors = new ArrayList<>();
-        int id = vert.previousSetBit(graph.getNumVertices());
+    private List<BitSet> greedyColor(BitSet vert) {
+        List<BitSet> colors = new ArrayList<>();
+        int id = vert.previousSetBit(gr.getNumVertices());
         while (id != -1) {
             int color = 0;
-            while (color < colors.size() && colors.get(color).intersects(adjacencyList[id])) {
+            while (color < colors.size() && colors.get(color).intersects(gr.getAdjacencyBitSet(id))) {
                 color++;
             }
             if (color == colors.size()) {
-                colors.add(new BitSet(graph.getNumVertices()));
+                colors.add(new BitSet(gr.getNumVertices()));
             }
             colors.get(color).set(id);
             id = vert.previousSetBit(id - 1);
         }
+        return colors;
     }
 
-    private int countColors(BitSet vertices) {
+    private int countColors(BitSet vertices, List<BitSet> colors) {
         int count = 0;
         for (BitSet color : colors) {
             if (color.intersects(vertices)) {
