@@ -162,7 +162,7 @@ public class BasicGraph {
 	}
 
 	public int getNumNodes() {
-		return adjacencyList[0].size();
+		return numVertices;
 	}
 
 	// Method to calculate the degree of a vertex
