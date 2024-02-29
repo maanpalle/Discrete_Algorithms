@@ -31,7 +31,7 @@ public class AMTS {
 
     public static void main(String[] args) {
         long start = System.currentTimeMillis();
-        BasicGraph graph = new BasicGraph("DIMACS_subset_ascii/brock200_4.clq");
+        BasicGraph graph = new BasicGraph("DIMACS_subset_ascii/C500.9.clq");
         AMTS amts = new AMTS(200, 4);
         BitSet maxClique = amts.maxClique(graph);
         System.out.println(maxClique);
@@ -50,7 +50,7 @@ public class AMTS {
         k = 1;
         BitSet prevSol;
         BitSet sol = new BitSet();
-        maxIter = 1000000;
+        maxIter = 10000;
         frequencyMemory = new int[graph.getNumNodes()];
         tabuSearchDepth = graph.getNumNodes() * k;
         do {
@@ -227,8 +227,8 @@ public class AMTS {
         int C = Math.max((int) Math.floor(k / 40.0), 6);
 
         Random rand = new Random();
-        this.Tu = l + rand.nextInt(0, C);
-        this.Tv = (int) 0.6 * l + rand.nextInt(0, (int) (0.6 * C));
+        this.Tu = l + rand.nextInt(C);
+        this.Tv = (int) Math.round(0.6 * l + rand.nextInt((int) Math.round(0.6 * C)));
     }
 
     public void selectSwap(BasicGraph graph, BitSet candidate) {
@@ -303,7 +303,7 @@ public class AMTS {
             }
         }
 
-        // Get the minimum and maximum cardinalities
+        // Get the minimum and maximum cardinalities and add the to max/min-Ids
         int min = Integer.MAX_VALUE;
         int max = Integer.MIN_VALUE;
         maxIds = new ArrayList<Integer>();
