@@ -10,6 +10,7 @@ import java.util.Random;
 
 import be.ugent.graphs.BasicGraph;
 
+
 public class AMTS implements MaximumCliqueAlgorithm {
 
     // Density of the graph
@@ -115,10 +116,17 @@ public class AMTS implements MaximumCliqueAlgorithm {
             double prob = Math.min((l + 2) / graph.getNumVertices(), 0.1);
             Random rand = new Random();
             if (rand.nextDouble(1.0) < prob) {
-                randomSwap(graph, sol);
+                int[] pair = selectRandomSwap(graph, sol);
+                int u = pair[0];
+                int v = pair[1];
+                swap(graph, u, v, sol);
+
             } else {
-                generateNeighborhood(graph, sol);
-                selectSwap(graph, sol);
+                generateConstrainedNeighborhood(graph, sol);
+                int[] pair = selectSwap(graph, sol);
+                int u = pair[0];
+                int v = pair[1];
+                swap(graph, u, v, sol);
             }
 
             iter += 1;
@@ -139,33 +147,12 @@ public class AMTS implements MaximumCliqueAlgorithm {
         return null;
     }
 
-    public void randomSwap(BasicGraph graph, ArrayList<Integer> candidate) {
-        int[] cardinalitiesFullGraph = new int[graph.getNumVertices()];
-
-        for (int id1 : candidate) {
-            BitSet adjec = graph.getAdjacencyBitSet(id1);
-            for (int id2 = 0; id2 < graph.getNumVertices(); id2++) {
-                if (candidate.contains(id2) || id1 == id2)
-                    continue;
-                if (adjec.get(id2)) {
-                    cardinalitiesFullGraph[id2]++;
-                }
-            }
-        }
-
-        Random rand = new Random();
-        int toSwap = candidate.get(rand.nextInt(k));
-        int node;
-
-        while (true) {
-            node = rand.nextInt(graph.getNumVertices());
-            if (!tabuAdd.contains(node) && cardinalitiesFullGraph[node] < (k * rho) && !candidate.contains(node)) {
-                swap(graph, toSwap, node, candidate);
-                break;
-            }
-        }
-    }
-
+    /**
+     * Initializes the current d array which contains the cardinalities of the full graph
+     * relative to the current candidate solution
+     * @param graph
+     * @param candidate
+     */
     public void initializeD(BasicGraph graph, ArrayList<Integer> candidate) {
         this.d = new int[graph.getNumVertices()];
         // Get the cardinalities for each node in the graph relative to the candidate
@@ -182,6 +169,13 @@ public class AMTS implements MaximumCliqueAlgorithm {
         }
     }
 
+    /**
+     * Generates an initial solution based on the frequencies with which the vertices 
+     * were added and removed from the constrained neihbourhood
+     * 
+     * @param graph
+     * @return
+     */
     public ArrayList<Integer> frequencyBasedInitialization(BasicGraph graph) {
         ArrayList<Integer> candidate = new ArrayList<>();
 
@@ -211,6 +205,11 @@ public class AMTS implements MaximumCliqueAlgorithm {
 
     }
 
+    /**
+     * Generates the initiatl candidate solution at random
+     * @param graph
+     * @return
+     */
     public ArrayList<Integer> generateInitial(BasicGraph graph) {
         ArrayList<Integer> nodes = new ArrayList<>();
         for (int i = 0; i < graph.getNumVertices(); i++) {
@@ -226,6 +225,13 @@ public class AMTS implements MaximumCliqueAlgorithm {
         return candidate;
     }
 
+    /**
+     * An evaluation function to rate the current candidate solution
+     * Based on the amount of edges in the solution
+     * @param graph
+     * @param candidate
+     * @return
+     */
     public int evalutionFunction(BasicGraph graph, ArrayList<Integer> candidate) {
         int fs = 0;
         for (int id1 : candidate) {
@@ -238,6 +244,15 @@ public class AMTS implements MaximumCliqueAlgorithm {
         return (int) Math.round(0.5 * fs);
     }
 
+    /**
+     * A method to create the tabu lengths:
+     * Tu = l + Random(C)
+     * Tv = 0.6 ∗ l + Random(0.6 ∗ C)
+     * 
+     * @param graph
+     * @param candidate
+     * @param k
+     */
     public void generateTabus(BasicGraph graph, ArrayList<Integer> candidate, int k) {
         int l1 = k * (k - 1) / 2 - evalutionFunction(graph, candidate);
         int l = Math.min(l1, 10);
@@ -248,21 +263,40 @@ public class AMTS implements MaximumCliqueAlgorithm {
         this.Tv = (int) Math.round(0.6 * l + rand.nextInt((int) Math.round(0.6 * C)));
     }
 
-    public void selectSwap(BasicGraph graph, ArrayList<Integer> candidate) {
+    /**
+     * Selects the best possible swap
+     * @param graph
+     * @param candidate
+     * @return an array of length 2: [u, v]
+     */
+    public int[] selectSwap(BasicGraph graph, ArrayList<Integer> candidate) {
+        int[] res = new int[2];
         for (int u : minIds) {
             for (int v : maxIds) {
                 if (!graph.getAdjacencyBitSet(u).get(v)) {
-                    swap(graph, u, v, candidate);
-                    return;
+                    res[0] = u;
+                    res[1] = v;
+                    return res;
                 }
             }
         }
         Random rand = new Random();
         int u = minIds.get(rand.nextInt(0, minIds.size()));
         int v = maxIds.get(rand.nextInt(0, maxIds.size()));
-        swap(graph, u, v, candidate);
+        res[0] = u;
+        res[1] = v;
+        return res;
     }
 
+    /**
+     * Performs the actual swap between the vertices 
+     * updates the tabu lists and frequencymemory
+     * 
+     * @param graph
+     * @param u
+     * @param v
+     * @param candidate
+     */
     public void swap(BasicGraph graph, int u, int v, ArrayList<Integer> candidate) {
         candidate.remove(Integer.valueOf(u));
         candidate.add(v);
@@ -288,18 +322,51 @@ public class AMTS implements MaximumCliqueAlgorithm {
         tabuRemove.add(v);
         frequencyMemory[u] += 1;
         frequencyMemory[v] += 1;
-        // System.out.println(u + ", " + v + ", " + this.Tu + ", " + this.Tv);
     }
 
     /**
-     * Generate the possible neighborhood for the current solution
+     * Generates a random swap with a vertex that has a much worse cardinality relative to
+     * the current candidate solution
+     * @param graph
+     * @param candidate
+     */
+    public int[] selectRandomSwap(BasicGraph graph, ArrayList<Integer> candidate) {
+        int[] cardinalitiesFullGraph = new int[graph.getNumVertices()];
+        int[] res = new int[2];
+        for (int id1 : candidate) {
+            BitSet adjec = graph.getAdjacencyBitSet(id1);
+            for (int id2 = 0; id2 < graph.getNumVertices(); id2++) {
+                if (candidate.contains(id2) || id1 == id2)
+                    continue;
+                if (adjec.get(id2)) {
+                    cardinalitiesFullGraph[id2]++;
+                }
+            }
+        }
+
+        Random rand = new Random();
+        int u = candidate.get(rand.nextInt(k));
+        int v;
+        while (true) {
+            v = rand.nextInt(graph.getNumVertices());
+            if (!tabuAdd.contains(v) && cardinalitiesFullGraph[v] < (k * rho) && !candidate.contains(v)) {
+                res[0] = u;
+                res[1] = v;
+                return res;
+            }
+        }
+    }
+
+    /**
+     * Generate the possible neighborhood for the current solution,
+     * Generates the minimum Ids (A in the paper) and the maximum Ids (B in thepaper)
      * 
      * @param graph
      * @param candidate
      * @param tabu
      * @return
      */
-    public void generateNeighborhood(BasicGraph graph, ArrayList<Integer> candidate) {
+    public void generateConstrainedNeighborhood(BasicGraph graph, ArrayList<Integer> candidate) {
         // Get the minimum and maximum cardinalities and add the to max/min-Ids
         int min = Integer.MAX_VALUE;
         int max = Integer.MIN_VALUE;
@@ -328,6 +395,12 @@ public class AMTS implements MaximumCliqueAlgorithm {
         }
     }
 
+    /**
+     * As AMST is more suited towards keeping the solution as an arraylist
+     * are these helper methods needed to convert between a bitset and arraylist 
+     * @param input
+     * @return
+     */
     public BitSet convertArrayListToBitSet(ArrayList<Integer> input) {
         BitSet bitSet = new BitSet(input.size());
         for (int i : input) {
@@ -336,6 +409,11 @@ public class AMTS implements MaximumCliqueAlgorithm {
         return bitSet;
     }
     
+    /**
+     * Method to convert a bitset to an arraylist
+     * @param input
+     * @return
+     */
     public ArrayList<Integer> convertBitSetToArrayList(BitSet input) {
         ArrayList<Integer> list = new ArrayList<Integer>();
         for (int i = 0; i < input.size(); i++) {
