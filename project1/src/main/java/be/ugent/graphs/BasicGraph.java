@@ -161,10 +161,6 @@ public class BasicGraph {
 		return edges / 2; // Since the graph is undirected
 	}
 
-	public int getNumNodes() {
-		return adjacencyList[0].size();
-	}
-
 	// Method to calculate the degree of a vertex
 	public int degree(int vertex) {
 		return adjacencyList[vertex].cardinality();
