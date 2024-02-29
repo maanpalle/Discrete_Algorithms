@@ -293,7 +293,6 @@ public class AMTS implements MaximumCliqueAlgorithm {
 
     /**
      * Generate the possible neighborhood for the current solution
-     * #TODO Keep track of MaxOutS and MinInS
      * 
      * @param graph
      * @param candidate
