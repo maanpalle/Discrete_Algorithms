@@ -27,12 +27,14 @@ public class AMTS {
     Queue<Integer> tabuAdd;
     Queue<Integer> tabuRemove;
 
+    int[] d;
+
     int[] frequencyMemory;
 
     public static void main(String[] args) {
         long start = System.currentTimeMillis();
-        BasicGraph graph = new BasicGraph("DIMACS_subset_ascii/C500.9.clq");
-        AMTS amts = new AMTS(50, 4);
+        BasicGraph graph = new BasicGraph("DIMACS_subset_ascii/hamming10-4.clq");
+        AMTS amts = new AMTS(400, 5);
         BitSet maxClique = amts.maxClique(graph);
         System.out.println(maxClique);
         System.out.println(graph.isClique(maxClique));
@@ -47,18 +49,18 @@ public class AMTS {
     }
 
     public BitSet maxClique(BasicGraph graph) {
-        k = 1;
         BitSet prevSol;
         BitSet sol = new BitSet();
-        maxIter = 100000;
-        frequencyMemory = new int[graph.getNumNodes()];
-        tabuSearchDepth = graph.getNumNodes() * k;
+
+        this.k = 1;
+        this.maxIter = 1000000;
+        this.frequencyMemory = new int[graph.getNumNodes()];
+        this.d = new int[graph.getNumNodes()];
         do {
-            System.out.println(k);
-            tabuSearchDepth = graphSize * k;
+            this.tabuSearchDepth = this.graphSize * this.k;
             prevSol = sol;
             sol = adaptiveMultiTabuSearch(graph);
-            k += 1;
+            this.k += 1;
 
         } while (sol != null && k < graph.getNumNodes());
         return prevSol;
@@ -66,6 +68,7 @@ public class AMTS {
 
     public BitSet adaptiveMultiTabuSearch(BasicGraph graph) {
         ArrayList<Integer> sol = generateInitial(graph);
+        initializeD(graph, sol);
         iter = 0;
 
         while (iter < maxIter) {
@@ -73,9 +76,10 @@ public class AMTS {
             if (sol != null) {
                 return convertArrayListToBitSet(sol);
             } else {
-                System.out.println("resetting");
-                System.out.flush();
+                System.out.println("resetting search space");
+                this.d = new int[graph.getNumNodes()];
                 sol = frequencyBasedInitialization(graph);
+                initializeD(graph, sol);
             }
         }
         return null;
@@ -91,20 +95,20 @@ public class AMTS {
 
         while (I < tabuSearchDepth) {
             generateTabus(graph, sol, k);
-            // double l = k * (k - 1.0) / 2.0 - fs;
-            // double prob = Math.min((l + 2) / graph.getNumNodes(), 0.1);
-            // Random rand = new Random();
-            // if (rand.nextDouble(1.0) < prob) {
-            //     randomSwap(graph, sol);
-            // } else {
-                
+            double l = k * (k - 1.0) / 2.0 - fs;
+            double prob = Math.min((l + 2) / graph.getNumNodes(), 0.1);
+            Random rand = new Random();
+            if (rand.nextDouble(1.0) < prob) {
+                randomSwap(graph, sol);
+            } else {
                 generateNeighborhood(graph, sol);
                 selectSwap(graph, sol);
-            // }
+            }
 
             iter += 1;
             BitSet solBitSet = convertArrayListToBitSet(sol);
             if (graph.isClique(solBitSet)) {
+                System.out.println(k + "-clique: " + solBitSet);
                 return sol;
             }
 
@@ -119,43 +123,48 @@ public class AMTS {
         return null;
     }
 
-    // public void randomSwap(BasicGraph graph, BitSet candidate) {
-    //     int[] cardinalitiesFullGraph = new int[graph.getNumNodes()];
+    public void randomSwap(BasicGraph graph, ArrayList<Integer> candidate) {
+        int[] cardinalitiesFullGraph = new int[graph.getNumNodes()];
 
-    //     for (int id1 = 0; id1 < graph.getNumNodes(); id1++) {
-    //         if (!candidate.get(id1))
-    //             continue;
-    //         BitSet adjec = graph.getAdjacencyList(id1);
-    //         for (int id2 = 0; id2 < graph.getNumNodes(); id2++) {
-    //             if (candidate.get(id2) || id1 == id2)
-    //                 continue;
-    //             if (adjec.get(id2)) {
-    //                 cardinalitiesFullGraph[id2]++;
-    //             }
-    //         }
-    //     }
+        for (int id1 : candidate) {
+            BitSet adjec = graph.getAdjacencyList(id1);
+            for (int id2 = 0; id2 < graph.getNumNodes(); id2++) {
+                if (candidate.contains(id2) || id1 == id2)
+                    continue;
+                if (adjec.get(id2)) {
+                    cardinalitiesFullGraph[id2]++;
+                }
+            }
+        }
 
-    //     Random rand = new Random();
-    //     int toSwapIndex = rand.nextInt(k);
-    //     int node = 0;
-    //     int toSwap = 0;
-    //     while (node < toSwapIndex) {
-    //         if (candidate.get(toSwap)) {
-    //             node++;
-    //         } else {
-    //             toSwap++;
-    //         }
-    //     }
+        Random rand = new Random();
+        int toSwap = candidate.get(rand.nextInt(k));
+        int node;
 
-    //     while (true) {
-    //         node = rand.nextInt(graph.getNumNodes());
-    //         if (!tabuAdd.contains(node) && cardinalitiesFullGraph[node] < (k * rho) && !candidate.get(node)) {
-    //             System.out.println(toSwap + " " + node);
-    //             swap(toSwap, node, candidate);
-    //             break;
-    //         }
-    //     }
-    // }
+        while (true) {
+            node = rand.nextInt(graph.getNumNodes());
+            if (!tabuAdd.contains(node) && cardinalitiesFullGraph[node] < (k * rho) && !candidate.contains(node)) {
+                // System.out.println(toSwap + " " + node);
+                swap(graph, toSwap, node, candidate);
+                break;
+            }
+        }
+    }
+
+    public void initializeD(BasicGraph graph, ArrayList<Integer> candidate) {
+        // Get the cardinalities for each node in the graph relative to the candidate
+        // solution
+        for (int id1 : candidate) {
+            BitSet adjec = graph.getAdjacencyList(id1);
+            for (int id2 = 0; id2 < graph.getNumNodes(); id2++) {
+                if (id1 == id2)
+                    continue;
+                if (adjec.get(id2)) {
+                    d[id2]++;
+                }
+            }
+        }
+    }
 
     public ArrayList<Integer> frequencyBasedInitialization(BasicGraph graph) {
         ArrayList<Integer> candidate = new ArrayList<>();
@@ -195,10 +204,10 @@ public class AMTS {
         Collections.shuffle(list);
         List<Integer> subset = list.subList(0, k);
 
-        ArrayList<Integer> res = new ArrayList<>();
+        ArrayList<Integer> candidate = new ArrayList<>();
 
-        res.addAll(subset);
-        return res;
+        candidate.addAll(subset);
+        return candidate;
     }
 
     public int evalutionFunction(BasicGraph graph, ArrayList<Integer> candidate) {
@@ -227,7 +236,7 @@ public class AMTS {
         for (int u : minIds) {
             for (int v : maxIds) {
                 if (!graph.getAdjacencyList(u).get(v)) {
-                    swap(u, v, candidate);
+                    swap(graph, u, v, candidate);
                     return;
                 }
             }
@@ -235,12 +244,26 @@ public class AMTS {
         Random rand = new Random();
         int u = minIds.get(rand.nextInt(0, minIds.size()));
         int v = maxIds.get(rand.nextInt(0, maxIds.size()));
-        swap(u, v, candidate);
+        swap(graph, u, v, candidate);
     }
 
-    public void swap(int u, int v, ArrayList<Integer> candidate) {
+    public void swap(BasicGraph graph, int u, int v, ArrayList<Integer> candidate) {
         candidate.remove(Integer.valueOf(u));
         candidate.add(v);
+
+        BitSet adjec = graph.getAdjacencyList(u);
+        for (int i = 0; i < graph.getNumNodes(); i++) {
+            if (adjec.get(i)) {
+                d[i] -= 1;
+            }
+        }
+        adjec = graph.getAdjacencyList(v);
+        for (int i = 0; i < graph.getNumNodes(); i++) {
+            if (adjec.get(i)) {
+                d[i] += 1;
+            }
+        }
+
         if (tabuAdd.size() > this.Tu)
             tabuAdd.poll();
         if (tabuRemove.size() > this.Tv)
@@ -262,40 +285,14 @@ public class AMTS {
      * @return
      */
     public void generateNeighborhood(BasicGraph graph, ArrayList<Integer> candidate) {
-        int[] cardinalitiesFullGraph = new int[graph.getNumNodes()];
-        int[] cardinalitiesCandidates = new int[graph.getNumNodes()];
-
-        // Get the cardinalities for each node in the graph relative to the candidate
-        // solution
-        for (int id1 : candidate) {
-            BitSet adjec = graph.getAdjacencyList(id1);
-            for (int id2 = 0; id2 < graph.getNumNodes(); id2++) {
-                if (candidate.contains(id2) || id1 == id2)
-                    continue;
-                if (adjec.get(id2)) {
-                    cardinalitiesFullGraph[id2]++;
-                }
-            }
-        }
-        // Get the cardinalities inside the candidate solution
-        for (int id1 : candidate) {
-            BitSet adjec = graph.getAdjacencyList(id1);
-            for (int id2 : candidate) {
-                if (id1 == id2)
-                    continue;
-                if (adjec.get(id2)) {
-                    cardinalitiesCandidates[id2]++;
-                }
-            }
-        }
-
         // Get the minimum and maximum cardinalities and add the to max/min-Ids
         int min = Integer.MAX_VALUE;
         int max = Integer.MIN_VALUE;
         maxIds = new ArrayList<Integer>();
         minIds = new ArrayList<Integer>();
-        for (int node = 0; node < cardinalitiesFullGraph.length; node++) {
-            int cardinality = cardinalitiesFullGraph[node];
+        for (int node = 0; node < d.length; node++) {
+            if (candidate.contains(node)) { continue; }
+            int cardinality = d[node];
             if (cardinality > max && !tabuAdd.contains(node)) {
                 max = cardinality;
                 maxIds = new ArrayList<>();
@@ -305,7 +302,7 @@ public class AMTS {
             }
         }
         for (int node : candidate) {
-            int cardinality = cardinalitiesCandidates[node];
+            int cardinality = d[node];
             if (cardinality < min && !tabuRemove.contains(node)) {
                 min = cardinality;
                 minIds = new ArrayList<>();
