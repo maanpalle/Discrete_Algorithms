@@ -34,6 +34,34 @@ public class BasicGraph {
         }
     }
 
+    /**
+     * Basic function to create an empty graph
+     */
+    public BasicGraph() {
+        adjacencyList = new BitSet[0];
+        numVertices = 0;
+    }
+
+    /**
+     * Function to clone a graph
+     * @param graph graph to clone
+     * @return cloned graph
+     */
+    public BasicGraph clone(BasicGraph graph) {
+        BasicGraph cloned = new BasicGraph();
+        this.adjacencyList = cloned.adjacencyList.clone();
+        this.numVertices = cloned.numVertices;
+        return cloned;
+    }
+
+    /**
+     * Function to get the number of nodes in a graph
+     * @return
+     */
+    public int getNumNodes(){
+        return adjacencyList.length;
+    }
+
     public void addEdge(int source, int destination) {
         adjacencyList[source].set(destination);
         adjacencyList[destination].set(source); // Since it's an undirected graph
@@ -89,16 +117,26 @@ public class BasicGraph {
     }
 
     public boolean isClique(BitSet vertices) {
-        boolean clique = true;
-        int card = vertices.cardinality();
-        int id = vertices.nextSetBit(0);
-        BitSet check = (BitSet) vertices.clone();
-        while (id != 0 && clique) {
-            check.and(adjacencyList[id]);
-            clique = (check.cardinality() == card);
-            id = vertices.nextSetBit(id + 1);
+        // boolean clique = true;
+        for (int i = 0; i < vertices.size(); i++) {
+            if(vertices.get(i)) {
+                for (int j = i + 1; j < getNumNodes(); j++) {
+                    if(vertices.get(j) && ! adjacencyList[i].get(j)) {
+                        return false;
+                    }
+                }
+            }
         }
-        return clique;
+        return true;
+        // int card = vertices.cardinality();
+        // int id = vertices.nextSetBit(0);
+        // BitSet check = (BitSet) vertices.clone();
+        // while (id != 0 && clique) {
+        //     check.and(adjacencyList[id]);
+        //     clique = (check.cardinality() == card);
+        //     id = vertices.nextSetBit(id + 1);
+        // }
+        // return clique;
     }
 
     public boolean isClique(int[] vertices) {
