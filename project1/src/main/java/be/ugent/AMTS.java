@@ -67,14 +67,14 @@ public class AMTS implements MaximumCliqueAlgorithm {
         BitSet sol = new BitSet();
 
         this.k = 1;
-        this.frequencyMemory = new int[graph.getNumNodes()];
+        this.frequencyMemory = new int[graph.getNumVertices()];
         do {
-            this.tabuSearchDepth = graph.getNumNodes() * this.k;
+            this.tabuSearchDepth = graph.getNumVertices() * this.k;
             prevSol = sol;
             sol = adaptiveMultiTabuSearch(graph);
             this.k += 1;
 
-        } while (sol != null && k < graph.getNumNodes());
+        } while (sol != null && k < graph.getNumVertices());
         return prevSol;
     }
 
@@ -112,7 +112,7 @@ public class AMTS implements MaximumCliqueAlgorithm {
         while (I < tabuSearchDepth) {
             generateTabus(graph, sol, k);
             double l = k * (k - 1.0) / 2.0 - fs;
-            double prob = Math.min((l + 2) / graph.getNumNodes(), 0.1);
+            double prob = Math.min((l + 2) / graph.getNumVertices(), 0.1);
             Random rand = new Random();
             if (rand.nextDouble(1.0) < prob) {
                 randomSwap(graph, sol);
@@ -140,11 +140,11 @@ public class AMTS implements MaximumCliqueAlgorithm {
     }
 
     public void randomSwap(BasicGraph graph, ArrayList<Integer> candidate) {
-        int[] cardinalitiesFullGraph = new int[graph.getNumNodes()];
+        int[] cardinalitiesFullGraph = new int[graph.getNumVertices()];
 
         for (int id1 : candidate) {
             BitSet adjec = graph.getAdjacencyBitSet(id1);
-            for (int id2 = 0; id2 < graph.getNumNodes(); id2++) {
+            for (int id2 = 0; id2 < graph.getNumVertices(); id2++) {
                 if (candidate.contains(id2) || id1 == id2)
                     continue;
                 if (adjec.get(id2)) {
@@ -158,7 +158,7 @@ public class AMTS implements MaximumCliqueAlgorithm {
         int node;
 
         while (true) {
-            node = rand.nextInt(graph.getNumNodes());
+            node = rand.nextInt(graph.getNumVertices());
             if (!tabuAdd.contains(node) && cardinalitiesFullGraph[node] < (k * rho) && !candidate.contains(node)) {
                 swap(graph, toSwap, node, candidate);
                 break;
@@ -167,12 +167,12 @@ public class AMTS implements MaximumCliqueAlgorithm {
     }
 
     public void initializeD(BasicGraph graph, ArrayList<Integer> candidate) {
-        this.d = new int[graph.getNumNodes()];
+        this.d = new int[graph.getNumVertices()];
         // Get the cardinalities for each node in the graph relative to the candidate
         // solution
         for (int id1 : candidate) {
             BitSet adjec = graph.getAdjacencyBitSet(id1);
-            for (int id2 = 0; id2 < graph.getNumNodes(); id2++) {
+            for (int id2 = 0; id2 < graph.getNumVertices(); id2++) {
                 if (id1 == id2)
                     continue;
                 if (adjec.get(id2)) {
@@ -205,7 +205,7 @@ public class AMTS implements MaximumCliqueAlgorithm {
             }
         }
         if (toReset) {
-            frequencyMemory = new int[graph.getNumNodes()];
+            frequencyMemory = new int[graph.getNumVertices()];
         }
         return candidate;
 
@@ -213,7 +213,7 @@ public class AMTS implements MaximumCliqueAlgorithm {
 
     public ArrayList<Integer> generateInitial(BasicGraph graph) {
         ArrayList<Integer> nodes = new ArrayList<>();
-        for (int i = 0; i < graph.getNumNodes(); i++) {
+        for (int i = 0; i < graph.getNumVertices(); i++) {
             nodes.add(i);
         }
         ArrayList<Integer> list = new ArrayList<Integer>(nodes);
@@ -268,13 +268,13 @@ public class AMTS implements MaximumCliqueAlgorithm {
         candidate.add(v);
 
         BitSet adjec = graph.getAdjacencyBitSet(u);
-        for (int i = 0; i < graph.getNumNodes(); i++) {
+        for (int i = 0; i < graph.getNumVertices(); i++) {
             if (adjec.get(i)) {
                 d[i] -= 1;
             }
         }
         adjec = graph.getAdjacencyBitSet(v);
-        for (int i = 0; i < graph.getNumNodes(); i++) {
+        for (int i = 0; i < graph.getNumVertices(); i++) {
             if (adjec.get(i)) {
                 d[i] += 1;
             }
