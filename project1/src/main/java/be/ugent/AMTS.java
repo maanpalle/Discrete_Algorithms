@@ -171,7 +171,7 @@ public class AMTS implements MaximumCliqueAlgorithm {
 
     /**
      * Generates an initial solution based on the frequencies with which the vertices 
-     * were added and removed from the constrained neihbourhood
+     * were added and removed from the constrained neigbourhood
      * 
      * @param graph
      * @return
