@@ -31,9 +31,25 @@ public class Main {
 				.longOpt("files")
 				.desc("Comma-separated list of filenames to be run").build();
 
+		Option rhoOption = Option.builder()
+				.argName("rho")
+				.hasArg()
+				.required()
+				.longOpt("rho")
+				.desc("density of the graph").build();
+
+		Option maxIterOption = Option.builder()
+				.argName("max")
+				.hasArg()
+				.required()
+				.longOpt("max")
+				.desc("Maximum amount of iterations").build();
+
 		Options options = new Options();
 		options.addOption(algorithmOption);
 		options.addOption(filesOption);
+		options.addOption(rhoOption);
+		options.addOption(maxIterOption);
 
 		HelpFormatter formatter = new HelpFormatter();
 
@@ -75,6 +91,18 @@ public class Main {
 				case "BLS":
 					logger.info("Using coloured graph algorithm");
 					maximumCliqueAlgorithm = new BreakoutLocalSearch();
+					break;
+				case "AMTS":
+					logger.info("Using Adaptive Multi Tabu Search algorithm");
+					int rho = 5;
+					int maxIter = 1000000;
+					if (cmd.hasOption("rho")) {
+						rho = Integer.parseInt(cmd.getOptionValue("rho"));
+					}
+					if (cmd.hasOption("max")) {
+						maxIter = Integer.parseInt(cmd.getOptionValue("max"));
+					}
+					maximumCliqueAlgorithm = new AMTS(rho, maxIter);
 					break;
 				default:
 					logger.error("Invalid algorithm specified");
