@@ -19,7 +19,7 @@ public class Benchmark {
                 new OstergardBranchAndBound(),
                 new BranchAndBound(),
                 //new BreakoutLocalSearch(),
-                new AMTS(5, 1000)
+                new AMTS(5, 1000000)
         };
         Benchmark benchmark = new Benchmark();
         benchmark.process(algorithms, files);

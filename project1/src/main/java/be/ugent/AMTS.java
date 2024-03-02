@@ -132,7 +132,6 @@ public class AMTS implements MaximumCliqueAlgorithm {
             iter += 1;
             BitSet solBitSet = convertArrayListToBitSet(sol);
             if (graph.isClique(solBitSet)) {
-                // System.out.println(k + "-clique: " + solBitSet);
                 return sol;
             }
 
@@ -319,7 +318,7 @@ public class AMTS implements MaximumCliqueAlgorithm {
         if (tabuRemove.size() > this.Tv)
             tabuRemove.poll();
         tabuAdd.add(u);
-        tabuRemove.add(v);
+        tabuRemove.add(v);        
         frequencyMemory[u] += 1;
         frequencyMemory[v] += 1;
     }
@@ -372,6 +371,13 @@ public class AMTS implements MaximumCliqueAlgorithm {
         int max = Integer.MIN_VALUE;
         maxIds = new ArrayList<Integer>();
         minIds = new ArrayList<Integer>();
+
+        // The paper is quite unclear on how the amount of tabuElements
+        // always is smaller then k. If this is not the case we just remove one 
+        // element from the tabu list
+        if (tabuRemove.size() >= candidate.size()) {
+            tabuRemove.poll();
+        }
         for (int node = 0; node < d.length; node++) {
             if (candidate.contains(node)) { continue; }
             int cardinality = d[node];
@@ -437,7 +443,7 @@ public class AMTS implements MaximumCliqueAlgorithm {
             amts = new AMTS(Integer.parseInt(args[1]), Integer.parseInt(args[2]));
         } else {
             graph = new BasicGraph("DIMACS_subset_ascii/brock200_2.clq");
-            amts = new AMTS(5, 100000);
+            amts = new AMTS(2, 1000000);
         }
         BitSet maxClique = amts.calculateMaxClique(graph);
         System.out.println(maxClique);
