@@ -34,6 +34,7 @@ public class Benchmark {
         ExecutorService executor = Executors.newSingleThreadExecutor();
 
         for (MaximumCliqueAlgorithm alg : algorithms) {
+            System.out.println("\n\n Now doing: " + alg.toString());
             for (String fileName : fileNames) {
                 long startTime = System.currentTimeMillis(); // Record start time
                 Future<BitSet> future = executor.submit(() -> {
@@ -43,11 +44,9 @@ public class Benchmark {
                 try {
                     BitSet maxClique = future.get(30, TimeUnit.MINUTES);
                     long endTime = System.currentTimeMillis(); // Record end time
-                    System.out.println("Processed file " + fileName + ", with: " + alg.toString());
-                    System.out.println("Size of maximum clique: " + maxClique.cardinality());
-                    System.out.println("Took: " + (endTime - startTime) + "ms");
+                    System.out.println("Processed file " + fileName + ", size: " + maxClique.cardinality() + ", time: " + (endTime - startTime)+" ms");
                 } catch (TimeoutException e) {
-                    System.err.println("Processing of file " + fileName + " with: " + alg.toString() + " timed out. Moving to the next file.");
+                    System.err.println("Processing of file " + fileName + " timed out. Moving to the next file.");
                     future.cancel(true); // Cancel the task
                 } catch (InterruptedException | ExecutionException e) {
                     e.printStackTrace(); // Handle other exceptions

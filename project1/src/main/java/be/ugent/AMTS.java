@@ -115,7 +115,7 @@ public class AMTS implements MaximumCliqueAlgorithm {
             double l = k * (k - 1.0) / 2.0 - fs;
             double prob = Math.min((l + 2) / graph.getNumVertices(), 0.1);
             Random rand = new Random();
-            if (rand.nextDouble(1.0) < prob) {
+            if (rand.nextDouble() < prob) {
                 int[] pair = selectRandomSwap(graph, sol);
                 int u = pair[0];
                 int v = pair[1];
@@ -281,8 +281,8 @@ public class AMTS implements MaximumCliqueAlgorithm {
             }
         }
         Random rand = new Random();
-        int u = minIds.get(rand.nextInt(0, minIds.size()));
-        int v = maxIds.get(rand.nextInt(0, maxIds.size()));
+        int u = minIds.get(rand.nextInt(minIds.size()));
+        int v = maxIds.get(rand.nextInt(maxIds.size()));
         res[0] = u;
         res[1] = v;
         return res;
