@@ -19,6 +19,7 @@ public class Main {
 				.argName("algorithm")
 				.hasArg()
 				.required()
+				.option("a")
 				.longOpt("algorithm")
 				.desc("Specify which algorithm should be used to find the maximum clique").build();
 
@@ -26,6 +27,7 @@ public class Main {
 				.argName("")
 				.hasArg()
 				.required()
+				.option("f")
 				.longOpt("files")
 				.desc("Comma-separated list of filenames to be run").build();
 
