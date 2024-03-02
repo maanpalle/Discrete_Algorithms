@@ -69,16 +69,16 @@ public class Main {
 		String algorithm;
 		MaximumCliqueAlgorithm maximumCliqueAlgorithm = null;
 
-		if (cmd.hasOption("files") && cmd.getOptionValues("files").length > 0) {
-			filePaths = cmd.getOptionValues("files");
+		if (cmd.hasOption("f") && cmd.getOptionValues("f").length > 0) {
+			filePaths = cmd.getOptionValues("f");
 		} else {
 			logger.error("You must specify at least one file to run the algorithm on, using the -f option");
 			formatter.printHelp("ant", options);
 			logger.error("Exiting...");
 			System.exit(1);
 		}
-		if (cmd.hasOption("algorithm")) {
-			algorithm = cmd.getOptionValue("algorithm");
+		if (cmd.hasOption("a")) {
+			algorithm = cmd.getOptionValue("a");
 			switch (algorithm) {
 				case "BAB":
 					logger.info("Using branch and bound algorithm");
