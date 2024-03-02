@@ -27,6 +27,11 @@ public class BasicGraph {
 		this.numVertices = graph.numVertices;
 	}
 
+	public BasicGraph(BitSet[] adjacencyList) {
+		this.adjacencyList = adjacencyList;
+		this.numVertices = adjacencyList.length;
+	}
+
 	public BasicGraph(String graphFilename) {
 		int expectedNumberOfEdges = -1; // Initialize with a sentinel value
 		int actualNumberOfEdges;

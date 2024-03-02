@@ -3,6 +3,7 @@ package be.ugent;
 import be.ugent.graphs.BasicGraph;
 
 
+import be.ugent.util.TestFileDatabase;
 import org.apache.commons.cli.*;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
@@ -77,6 +78,8 @@ public class Main {
 			logger.error("Exiting...");
 			System.exit(1);
 		}
+		TestFileDatabase testFileDatabase = new TestFileDatabase();
+
 		if (cmd.hasOption("a")) {
 			algorithm = cmd.getOptionValue("a");
 			switch (algorithm) {
@@ -90,7 +93,7 @@ public class Main {
 					break;
 				case "BLS":
 					logger.info("Using coloured graph algorithm");
-					maximumCliqueAlgorithm = new BreakoutLocalSearch();
+					maximumCliqueAlgorithm = new BreakoutLocalSearch(testFileDatabase.getMaxClique(filePaths[0]));
 					break;
 				case "AMTS":
 					logger.info("Using Adaptive Multi Tabu Search algorithm");

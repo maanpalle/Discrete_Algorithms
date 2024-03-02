@@ -8,11 +8,20 @@
             <PatternLayout
                     pattern="%d{yyyy-MM-dd HH:mm:ss} %-5p %c{1}:%L - %m%n" />
         </Console>
+        <!-- File appender configuration -->
+        <File name="file" fileName="logs/app.log">
+            <PatternLayout
+                    pattern="%d{yyyy-MM-dd HH:mm:ss} %-5p %c{1}:%L - %m%n" />
+        </File>
     </Appenders>
     <Loggers>
         <!-- Root logger referring to console appender -->
         <Root level="info" additivity="false">
             <AppenderRef ref="console" />
         </Root>
+        <!-- Logger for file appender -->
+        <Logger name="com.javabydeveloper.logging" level="debug" additivity="false">
+            <AppenderRef ref="file" />
+        </Logger>
     </Loggers>
 </Configuration>
