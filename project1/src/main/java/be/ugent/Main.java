@@ -29,9 +29,25 @@ public class Main {
 				.longOpt("files")
 				.desc("Comma-separated list of filenames to be run").build();
 
+		Option rhoOption = Option.builder()
+				.argName("rho")
+				.hasArg()
+				.required()
+				.longOpt("rho")
+				.desc("density of the graph").build();
+
+		Option maxIterOption = Option.builder()
+				.argName("max")
+				.hasArg()
+				.required()
+				.longOpt("max")
+				.desc("Maximum amount of iterations").build();
+
 		Options options = new Options();
 		options.addOption(algorithmOption);
 		options.addOption(filesOption);
+		options.addOption(rhoOption);
+		options.addOption(maxIterOption);
 
 		HelpFormatter formatter = new HelpFormatter();
 
@@ -51,16 +67,16 @@ public class Main {
 		String algorithm;
 		MaximumCliqueAlgorithm maximumCliqueAlgorithm = null;
 
-		if (cmd.hasOption("f") && cmd.getOptionValues("f").length > 0) {
-			filePaths = cmd.getOptionValues("f");
+		if (cmd.hasOption("files") && cmd.getOptionValues("files").length > 0) {
+			filePaths = cmd.getOptionValues("files");
 		} else {
 			logger.error("You must specify at least one file to run the algorithm on, using the -f option");
 			formatter.printHelp("ant", options);
 			logger.error("Exiting...");
 			System.exit(1);
 		}
-		if (cmd.hasOption("a")) {
-			algorithm = cmd.getOptionValue("a");
+		if (cmd.hasOption("algorithm")) {
+			algorithm = cmd.getOptionValue("algorithm");
 			switch (algorithm) {
 				case "BAB":
 					logger.info("Using branch and bound algorithm");
@@ -73,6 +89,18 @@ public class Main {
 				case "BLS":
 					logger.info("Using coloured graph algorithm");
 					maximumCliqueAlgorithm = new BreakoutLocalSearch();
+					break;
+				case "AMTS":
+					logger.info("Using Adaptive Multi Tabu Search algorithm");
+					int rho = 5;
+					int maxIter = 1000000;
+					if (cmd.hasOption("rho")) {
+						rho = Integer.parseInt(cmd.getOptionValue("rho"));
+					}
+					if (cmd.hasOption("max")) {
+						maxIter = Integer.parseInt(cmd.getOptionValue("max"));
+					}
+					maximumCliqueAlgorithm = new AMTS(rho, maxIter);
 					break;
 				default:
 					logger.error("Invalid algorithm specified");
