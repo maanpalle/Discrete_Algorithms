@@ -424,10 +424,14 @@ public class AMTS implements MaximumCliqueAlgorithm {
         return list;
     }
 
+    /**
+     * 
+     * @param args Array: [name of the graph, density of the graph, maximum amount of iterations]
+     */
     public static void main(String[] args) {
         long start = System.currentTimeMillis();
-        BasicGraph graph = new BasicGraph("DIMACS_subset_ascii/C125.9.clq");
-        AMTS amts = new AMTS(5, 100000);
+        BasicGraph graph = new BasicGraph(args[0]);
+        AMTS amts = new AMTS(Integer.parseInt(args[1]), Integer.parseInt(args[2]));
         BitSet maxClique = amts.calculateMaxClique(graph);
         System.out.println(maxClique);
         System.out.println(graph.isClique(maxClique));
