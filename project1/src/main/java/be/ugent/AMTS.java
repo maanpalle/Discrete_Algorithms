@@ -430,8 +430,15 @@ public class AMTS implements MaximumCliqueAlgorithm {
      */
     public static void main(String[] args) {
         long start = System.currentTimeMillis();
-        BasicGraph graph = new BasicGraph(args[0]);
-        AMTS amts = new AMTS(Integer.parseInt(args[1]), Integer.parseInt(args[2]));
+        BasicGraph graph;
+        AMTS amts;
+        if (args.length != 0) {
+            graph = new BasicGraph(args[0]);
+            amts = new AMTS(Integer.parseInt(args[1]), Integer.parseInt(args[2]));
+        } else {
+            graph = new BasicGraph("DIMACS_subset_ascii/brock200_2.clq");
+            amts = new AMTS(5, 100000);
+        }
         BitSet maxClique = amts.calculateMaxClique(graph);
         System.out.println(maxClique);
         System.out.println(graph.isClique(maxClique));
