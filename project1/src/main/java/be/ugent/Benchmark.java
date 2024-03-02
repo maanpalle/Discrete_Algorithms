@@ -11,6 +11,7 @@ public class Benchmark {
     public static void main(String[] args) {
         String[] files = {
                 "DIMACS_subset_ascii/C125.9.clq",
+                // "DIMACS_subset_ascii/C500.9.clq",
                 "DIMACS_subset_ascii/keller4.clq"
         };
 
@@ -18,7 +19,7 @@ public class Benchmark {
                 new OstergardBranchAndBound(),
                 new BranchAndBound(),
                 //new BreakoutLocalSearch(),
-                //new AMTS()
+                new AMTS(5, 1000)
         };
         Benchmark benchmark = new Benchmark();
         benchmark.process(algorithms, files);

@@ -94,7 +94,7 @@ public class AMTS implements MaximumCliqueAlgorithm {
             if (sol != null) {
                 return convertArrayListToBitSet(sol);
             } else {
-                System.out.println("resetting search space");
+                // System.out.println("resetting search space");
                 sol = frequencyBasedInitialization(graph);
                 initializeD(graph, sol);
             }
@@ -132,7 +132,7 @@ public class AMTS implements MaximumCliqueAlgorithm {
             iter += 1;
             BitSet solBitSet = convertArrayListToBitSet(sol);
             if (graph.isClique(solBitSet)) {
-                System.out.println(k + "-clique: " + solBitSet);
+                // System.out.println(k + "-clique: " + solBitSet);
                 return sol;
             }
 
