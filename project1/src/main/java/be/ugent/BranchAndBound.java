@@ -13,8 +13,8 @@ public class BranchAndBound implements MaximumCliqueAlgorithm {
 
     private BitSet MaxClique(BitSet clique, BitSet remaining) {
         List<BitSet> colors = greedyColor(remaining);
-        BitSet lastColor = colors.get(colors.size() - 1);
-        int id = lastColor.nextSetBit(0);
+        BitSet color = colors.get(colors.size() - 1);
+        int id = color.nextSetBit(0);
         while (id != -1 && clique.cardinality() + colors.size() > biggestClique.cardinality()) {
             clique.set(id);
             remaining.clear(id);
@@ -28,12 +28,12 @@ public class BranchAndBound implements MaximumCliqueAlgorithm {
                 biggestClique = (BitSet) maxClique.clone();
             }
             clique.clear(id);
-            lastColor.clear(id);
-            if (lastColor.cardinality() == 0 && colors.size() != 1) {
+            color.clear(id);
+            if (color.isEmpty() && colors.size() != 1) {
                 colors.remove(colors.size() - 1);
-                lastColor = colors.get(colors.size() - 1);
+                color = colors.get(colors.size() - 1);
             }
-            id = lastColor.nextSetBit(0);
+            id = color.nextSetBit(0);
         }
         return biggestClique;
     }
@@ -44,8 +44,16 @@ public class BranchAndBound implements MaximumCliqueAlgorithm {
         List<Integer> vertices = gr.orderByUpwardsDegree();
         gr.reorderVertices(vertices);
         int numVertices = vertices.size();
-        greedyClique();
-        BitSet greedyColorClique = greedyColorClique();
+        biggestClique = greedyClique();
+        BitSet greedyColorClique = greedyColorClique(null);
+        if (greedyColorClique.cardinality() > biggestClique.cardinality()) {
+            biggestClique = greedyColorClique;
+        }
+        greedyColorClique = greedyColorClique(Comparator.comparingInt(BitSet::cardinality));
+        if (greedyColorClique.cardinality() > biggestClique.cardinality()) {
+            biggestClique = greedyColorClique;
+        }
+        greedyColorClique = greedyColorClique(Comparator.comparingInt(BitSet::cardinality).thenComparing(BitSet::length, Comparator.reverseOrder()));
         if (greedyColorClique.cardinality() > biggestClique.cardinality()) {
             biggestClique = greedyColorClique;
         }
@@ -78,38 +86,55 @@ public class BranchAndBound implements MaximumCliqueAlgorithm {
         return colors;
     }
 
-    private int nextColoredVertex(BitSet vert) {
-        if (vert.cardinality() == 0) {
-            return -1;
-        }
-        List<BitSet> colors = greedyColor(vert);
-        colors.sort(Comparator.comparingInt(BitSet::cardinality));
-        return colors.get(0).previousSetBit(gr.getNumVertices());
-    }
-
-    private BitSet greedyColorClique() {
+    private BitSet greedyClique() {
         BitSet remaining = new BitSet(gr.getNumVertices());
         remaining.set(0, gr.getNumVertices());
         BitSet biggestClique = new BitSet(gr.getNumVertices());
-        int id = nextColoredVertex(remaining);
-        while (id != -1) {
+        List<Integer> vertices = gr.orderByRelativeDegree(remaining);
+        int i = vertices.size() - 1;
+        while (i >= 0) {
+            int id = vertices.get(i);
             biggestClique.set(id);
             remaining.and(gr.getAdjacencyBitSet(id));
-            id = nextColoredVertex(remaining);
+            vertices = gr.orderByRelativeDegree(remaining);
+            i = vertices.size() - 1;
         }
         return biggestClique;
     }
 
-    private void greedyClique() {
+    private List<BitSet> greedyRelativeColor(BitSet vert) {
+        List<BitSet> colors = new ArrayList<>();
+        List<Integer> vertices = gr.orderByRelativeDegree(vert);
+        int i = 0;
+        while (i < vertices.size()) {
+            int id = vertices.get(i);
+            int color = 0;
+            while (color < colors.size() && colors.get(color).intersects(gr.getAdjacencyBitSet(id))) {
+                color++;
+            }
+            if (color == colors.size()) {
+                colors.add(new BitSet(gr.getNumVertices()));
+            }
+            colors.get(color).set(id);
+            i++;
+        }
+        return colors;
+    }
+
+    private BitSet greedyColorClique(Comparator<BitSet> comp) {
         BitSet remaining = new BitSet(gr.getNumVertices());
         remaining.set(0, gr.getNumVertices());
-        biggestClique = new BitSet(gr.getNumVertices());
-        int id = remaining.previousSetBit(gr.getNumVertices() + 1);
-        while (id != -1) {
+        BitSet biggestClique = new BitSet(gr.getNumVertices());
+        while (!remaining.isEmpty()) {
+            List<BitSet> colors = greedyRelativeColor(remaining);
+            if (comp != null) {
+                colors.sort(comp);
+            }
+            int id = colors.get(0).previousSetBit(gr.getNumVertices());
             biggestClique.set(id);
             remaining.and(gr.getAdjacencyBitSet(id));
-            id = remaining.previousSetBit(id - 1);
         }
+        return biggestClique;
     }
 
     private void test(BasicGraph graph) {
@@ -124,9 +149,12 @@ public class BranchAndBound implements MaximumCliqueAlgorithm {
         BranchAndBound bAB = new BranchAndBound();
         bAB.test(new BasicGraph("DIMACS_subset_ascii/C125.9.clq"));
 //        bAB.test(new BasicGraph("DIMACS_subset_ascii/DSJC500_5.clq"));
+//        bAB.test(new BasicGraph("DIMACS_subset_ascii/DSJC1000_5.clq"));
 //        bAB.test(new BasicGraph("DIMACS_subset_ascii/MANN_a27.clq"));
 //        bAB.test(new BasicGraph("DIMACS_subset_ascii/brock200_2.clq"));
 //        bAB.test(new BasicGraph("DIMACS_subset_ascii/brock200_4.clq"));
+//        bAB.test(new BasicGraph("DIMACS_subset_ascii/brock400_2.clq"));
+//        bAB.test(new BasicGraph("DIMACS_subset_ascii/brock400_4.clq"));
 //        bAB.test(new BasicGraph("DIMACS_subset_ascii/gen200_p0.9_44.clq"));
 //        bAB.test(new BasicGraph("DIMACS_subset_ascii/gen200_p0.9_55.clq"));
 //        bAB.test(new BasicGraph("DIMACS_subset_ascii/hamming8-4.clq"));
@@ -135,6 +163,7 @@ public class BranchAndBound implements MaximumCliqueAlgorithm {
 //        bAB.test(new BasicGraph("DIMACS_subset_ascii/p_hat300-2.clq"));
 //        bAB.test(new BasicGraph("DIMACS_subset_ascii/p_hat300-3.clq"));
 //        bAB.test(new BasicGraph("DIMACS_subset_ascii/p_hat700-1.clq"));
+//        bAB.test(new BasicGraph("DIMACS_subset_ascii/p_hat700-2.clq"));
 //        bAB.test(new BasicGraph("DIMACS_subset_ascii/p_hat1500-1.clq"));
         long end = System.currentTimeMillis();
         System.out.println(end - start);

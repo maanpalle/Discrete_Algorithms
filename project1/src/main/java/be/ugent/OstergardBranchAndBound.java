@@ -73,7 +73,6 @@ public class OstergardBranchAndBound implements MaximumCliqueAlgorithm {
         this.c = new Integer[numVertices];
         for (int i = numVertices - 1; i >= 0; i -= 1) {
             this.found = false;
-            System.out.println("Round: " + i);
 
             // initial vertices to start the round
             BitSet roundVertices = new BitSet(numVertices);

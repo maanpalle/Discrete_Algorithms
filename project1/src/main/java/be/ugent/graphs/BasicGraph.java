@@ -142,10 +142,12 @@ public class BasicGraph {
     public List<Integer> orderByRelativeDegree(BitSet vert) {
         List<Integer> vertices = new ArrayList<>();
         for (int i = 0; i < numVertices; i++) {
-            vertices.add(i);
+            if (vert.get(i)) {
+                vertices.add(i);
+            }
         }
-        // Sort vertices based on their degrees (largest degree first)
-        vertices.sort((v1, v2) -> (relativeDegree(v2, vert) - relativeDegree(v1, vert)));
+        // Sort vertices based on their degrees (smallest degree first)
+        vertices.sort((v1, v2) -> (relativeDegree(v1, vert) - relativeDegree(v2, vert)));
         return vertices;
     }
 
