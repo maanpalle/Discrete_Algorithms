@@ -52,8 +52,7 @@ public class AMTS implements MaximumCliqueAlgorithm {
      * @param rho Densitity of the graph
      * @param maxIterations the maximum allowed iterations the algorithms can run
      */
-    public AMTS(double rho, int maxIterations) {
-        this.rho = rho;
+    public AMTS(int maxIterations) {
         this.maxIter = maxIterations;
     }
 
@@ -64,6 +63,7 @@ public class AMTS implements MaximumCliqueAlgorithm {
      * @return The clique as a BitSet
      */
     public BitSet calculateMaxClique(BasicGraph graph) {
+        this.rho = (2.0*(double)graph.getNumEdges()) / ((double) graph.getNumVertices()*((double)graph.getNumVertices() - 1.0));
         BitSet prevSol;
         BitSet sol = new BitSet();
 
@@ -440,10 +440,10 @@ public class AMTS implements MaximumCliqueAlgorithm {
         AMTS amts;
         if (args.length != 0) {
             graph = new BasicGraph(args[0]);
-            amts = new AMTS(Integer.parseInt(args[1]), Integer.parseInt(args[2]));
+            amts = new AMTS(Integer.parseInt(args[1]));
         } else {
-            graph = new BasicGraph("DIMACS_subset_ascii/p_hat300-1.clq");
-            amts = new AMTS(0.224, 1000000);
+            graph = new BasicGraph("DIMACS_subset_ascii/C125.9.clq");
+            amts = new AMTS(1000000);
         }
         BitSet maxClique = amts.calculateMaxClique(graph);
         System.out.println(maxClique);

@@ -33,7 +33,7 @@ public class Benchmark {
                 (int maxCliqueSize) -> new OstergardBranchAndBound(),
                 (int maxCliqueSize) -> new BranchAndBound(),
                 (int maxCliqueSize) -> new BreakoutLocalSearch(maxCliqueSize),
-                (int maxCliqueSize) -> new AMTS(5, 1000000)
+                (int maxCliqueSize) -> new AMTS(1000000)
         };
         Benchmark benchmark = new Benchmark();
         benchmark.process(algorithms, files);
