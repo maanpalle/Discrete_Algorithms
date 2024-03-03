@@ -8,9 +8,13 @@ import java.util.Comparator;
 import java.util.List;
 
 public class BranchAndBound implements MaximumCliqueAlgorithm {
-    private BitSet biggestClique;
-    private BasicGraph gr;
+    private BitSet biggestClique;//currently biggest found clique
+    private BasicGraph gr;//graph with vertices reordered from smallest to largest degree
 
+    /*
+    Tries to add every vertex in remaining to the current clique
+    Uses recursion to find the biggest clique in each instance
+     */
     private BitSet MaxClique(BitSet clique, BitSet remaining) {
         List<BitSet> colors = greedyColor(remaining);
         BitSet color = colors.get(colors.size() - 1);
@@ -38,6 +42,11 @@ public class BranchAndBound implements MaximumCliqueAlgorithm {
         return biggestClique;
     }
 
+    /*
+    Creates a new graph with the vertices reordered from smallest to largest degree,
+    tries to find an initial maximal clique with a greedy approach
+    Then initializes the recursion function to find the maximum clique
+     */
     @Override
     public BitSet calculateMaxClique(BasicGraph graph) {
         this.gr = new BasicGraph(graph);
@@ -45,14 +54,18 @@ public class BranchAndBound implements MaximumCliqueAlgorithm {
         gr.reorderVertices(vertices);
         int numVertices = vertices.size();
         biggestClique = greedyClique();
+        //Don't sort colors
         BitSet greedyColorClique = greedyColorClique(null);
         if (greedyColorClique.cardinality() > biggestClique.cardinality()) {
             biggestClique = greedyColorClique;
         }
+        //Sort colors by number of vertices with that color
         greedyColorClique = greedyColorClique(Comparator.comparingInt(BitSet::cardinality));
         if (greedyColorClique.cardinality() > biggestClique.cardinality()) {
             biggestClique = greedyColorClique;
         }
+        //Sort colors by number of vertices with that color
+        //break ties by sorting based on the highest degree vertex for each color, highest first
         greedyColorClique = greedyColorClique(Comparator.comparingInt(BitSet::cardinality).thenComparing(BitSet::length, Comparator.reverseOrder()));
         if (greedyColorClique.cardinality() > biggestClique.cardinality()) {
             biggestClique = greedyColorClique;
@@ -69,6 +82,9 @@ public class BranchAndBound implements MaximumCliqueAlgorithm {
         return solution;
     }
 
+    /*
+    Colors the given vertices by sequentially adding the vertices with the highest degrees in the original graph
+     */
     private List<BitSet> greedyColor(BitSet vert) {
         List<BitSet> colors = new ArrayList<>();
         int id = vert.previousSetBit(gr.getNumVertices());
@@ -86,6 +102,10 @@ public class BranchAndBound implements MaximumCliqueAlgorithm {
         return colors;
     }
 
+    /*
+    Finds a maximal clique by sequentially trying to add the vertices
+    with the highest relative degree within the remaining vertices
+     */
     private BitSet greedyClique() {
         BitSet remaining = new BitSet(gr.getNumVertices());
         remaining.set(0, gr.getNumVertices());
@@ -102,6 +122,10 @@ public class BranchAndBound implements MaximumCliqueAlgorithm {
         return biggestClique;
     }
 
+    /*
+    Colors the given vertices by sequentially adding the vertices
+    with the highest relative degrees within the remaining vertices
+     */
     private List<BitSet> greedyRelativeColor(BitSet vert) {
         List<BitSet> colors = new ArrayList<>();
         List<Integer> vertices = gr.orderByRelativeDegree(vert);
@@ -121,6 +145,11 @@ public class BranchAndBound implements MaximumCliqueAlgorithm {
         return colors;
     }
 
+    /*
+    Finds a maximal clique by sequentially coloring the remaining vertices,
+    sorting the colors according to the given comparator
+    and adding the vertex with the biggest degree from the first color
+     */
     private BitSet greedyColorClique(Comparator<BitSet> comp) {
         BitSet remaining = new BitSet(gr.getNumVertices());
         remaining.set(0, gr.getNumVertices());
@@ -135,37 +164,5 @@ public class BranchAndBound implements MaximumCliqueAlgorithm {
             remaining.and(gr.getAdjacencyBitSet(id));
         }
         return biggestClique;
-    }
-
-    private void test(BasicGraph graph) {
-        BitSet maxClique = calculateMaxClique(graph);
-        System.out.println(maxClique);
-        System.out.println(maxClique.cardinality());
-        System.out.println(graph.isClique(maxClique));
-    }
-
-    public static void main(String[] args) {
-        long start = System.currentTimeMillis();
-        BranchAndBound bAB = new BranchAndBound();
-        bAB.test(new BasicGraph("DIMACS_subset_ascii/C125.9.clq"));
-//        bAB.test(new BasicGraph("DIMACS_subset_ascii/DSJC500_5.clq"));
-//        bAB.test(new BasicGraph("DIMACS_subset_ascii/DSJC1000_5.clq"));
-//        bAB.test(new BasicGraph("DIMACS_subset_ascii/MANN_a27.clq"));
-//        bAB.test(new BasicGraph("DIMACS_subset_ascii/brock200_2.clq"));
-//        bAB.test(new BasicGraph("DIMACS_subset_ascii/brock200_4.clq"));
-//        bAB.test(new BasicGraph("DIMACS_subset_ascii/brock400_2.clq"));
-//        bAB.test(new BasicGraph("DIMACS_subset_ascii/brock400_4.clq"));
-//        bAB.test(new BasicGraph("DIMACS_subset_ascii/gen200_p0.9_44.clq"));
-//        bAB.test(new BasicGraph("DIMACS_subset_ascii/gen200_p0.9_55.clq"));
-//        bAB.test(new BasicGraph("DIMACS_subset_ascii/hamming8-4.clq"));
-//        bAB.test(new BasicGraph("DIMACS_subset_ascii/keller4.clq"));
-//        bAB.test(new BasicGraph("DIMACS_subset_ascii/p_hat300-1.clq"));
-//        bAB.test(new BasicGraph("DIMACS_subset_ascii/p_hat300-2.clq"));
-//        bAB.test(new BasicGraph("DIMACS_subset_ascii/p_hat300-3.clq"));
-//        bAB.test(new BasicGraph("DIMACS_subset_ascii/p_hat700-1.clq"));
-//        bAB.test(new BasicGraph("DIMACS_subset_ascii/p_hat700-2.clq"));
-//        bAB.test(new BasicGraph("DIMACS_subset_ascii/p_hat1500-1.clq"));
-        long end = System.currentTimeMillis();
-        System.out.println(end - start);
     }
 }
