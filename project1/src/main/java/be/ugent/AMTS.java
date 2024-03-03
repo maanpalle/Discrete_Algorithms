@@ -74,6 +74,11 @@ public class AMTS implements MaximumCliqueAlgorithm {
             prevSol = sol;
             sol = adaptiveMultiTabuSearch(graph);
             this.k += 1;
+            if (k == 35) {
+                prevSol = sol;
+                break;
+            }
+                
 
         } while (sol != null && k < graph.getNumVertices());
         return prevSol;
@@ -442,8 +447,8 @@ public class AMTS implements MaximumCliqueAlgorithm {
             graph = new BasicGraph(args[0]);
             amts = new AMTS(Integer.parseInt(args[1]), Integer.parseInt(args[2]));
         } else {
-            graph = new BasicGraph("DIMACS_subset_ascii/p_hat300-1.clq");
-            amts = new AMTS(0.224, 1000000);
+            graph = new BasicGraph("DIMACS_subset_ascii/C125.9.clq");
+            amts = new AMTS(0.898452, 1000000);
         }
         BitSet maxClique = amts.calculateMaxClique(graph);
         System.out.println(maxClique);
