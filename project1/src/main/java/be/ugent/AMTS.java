@@ -14,7 +14,7 @@ import be.ugent.graphs.BasicGraph;
 public class AMTS implements MaximumCliqueAlgorithm {
 
     // Density of the graph
-    private int rho;
+    private double rho;
 
     // Size of the tabuAdd list
     private int Tu;
@@ -52,7 +52,7 @@ public class AMTS implements MaximumCliqueAlgorithm {
      * @param rho Densitity of the graph
      * @param maxIterations the maximum allowed iterations the algorithms can run
      */
-    public AMTS(int rho, int maxIterations) {
+    public AMTS(double rho, int maxIterations) {
         this.rho = rho;
         this.maxIter = maxIterations;
     }
@@ -348,7 +348,7 @@ public class AMTS implements MaximumCliqueAlgorithm {
         int v;
         while (true) {
             v = rand.nextInt(graph.getNumVertices());
-            if (!tabuAdd.contains(v) && cardinalitiesFullGraph[v] < (k * rho) && !candidate.contains(v)) {
+            if (!tabuAdd.contains(v) && cardinalitiesFullGraph[v] < Math.floor(k * rho) && !candidate.contains(v)) {
                 res[0] = u;
                 res[1] = v;
                 return res;
@@ -375,7 +375,7 @@ public class AMTS implements MaximumCliqueAlgorithm {
         // The paper is quite unclear on how the amount of tabuElements
         // always is smaller then k. If this is not the case we just remove one 
         // element from the tabu list
-        if (tabuRemove.size() >= candidate.size()) {
+        while (tabuRemove.size() >= candidate.size()) {
             tabuRemove.poll();
         }
         for (int node = 0; node < d.length; node++) {
@@ -442,8 +442,8 @@ public class AMTS implements MaximumCliqueAlgorithm {
             graph = new BasicGraph(args[0]);
             amts = new AMTS(Integer.parseInt(args[1]), Integer.parseInt(args[2]));
         } else {
-            graph = new BasicGraph("DIMACS_subset_ascii/brock200_2.clq");
-            amts = new AMTS(2, 1000000);
+            graph = new BasicGraph("DIMACS_subset_ascii/p_hat300-1.clq");
+            amts = new AMTS(0.224, 1000000);
         }
         BitSet maxClique = amts.calculateMaxClique(graph);
         System.out.println(maxClique);
