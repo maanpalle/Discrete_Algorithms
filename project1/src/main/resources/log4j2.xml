@@ -1,27 +1,26 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Extra logging related to initialization of Log4j.
- Set to debug or trace if log4j initialization is failing. -->
-<Configuration status="warn">
+<Configuration status="INFO">
     <Appenders>
-        <!-- Console appender configuration -->
-        <Console name="console" target="SYSTEM_OUT">
-            <PatternLayout
-                    pattern="%d{yyyy-MM-dd HH:mm:ss} %-5p %c{1}:%L - %m%n" />
+        <Console name="Console" target="SYSTEM_OUT">
+            <PatternLayout pattern="%d{HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n" />
         </Console>
-        <!-- File appender configuration -->
-        <File name="file" fileName="logs/app.log">
-            <PatternLayout
-                    pattern="%d{yyyy-MM-dd HH:mm:ss} %-5p %c{1}:%L - %m%n" />
-        </File>
+        <RollingFile name="RollingFile" fileName="logs/app.log"
+                     append="false"
+                     filePattern="logs/$${date:yyyy-MM}/app-%d{MM-dd-yyyy}-%i.log.gz">
+            <PatternLayout>
+                <Pattern>%d{HH:mm:ss.SSS} %-5level - %msg%n</Pattern>
+            </PatternLayout>
+            <Policies>
+                <TimeBasedTriggeringPolicy />
+                <SizeBasedTriggeringPolicy size="250 MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="20"/>
+        </RollingFile>
     </Appenders>
     <Loggers>
-        <!-- Root logger referring to console appender -->
-        <Root level="info" additivity="false">
-            <AppenderRef ref="console" />
+        <Root level="debug">
+            <AppenderRef ref="Console" />
+            <AppenderRef ref="RollingFile"/>
         </Root>
-        <!-- Logger for file appender -->
-        <Logger name="com.javabydeveloper.logging" level="debug" additivity="false">
-            <AppenderRef ref="file" />
-        </Logger>
     </Loggers>
 </Configuration>
