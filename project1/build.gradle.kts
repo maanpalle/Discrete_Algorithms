@@ -25,5 +25,5 @@ tasks.test {
 
 
 application {
-    mainClass.set("be.ugent.Main") // The main class of the application
+    mainClass.set("be.ugent.Benchmark") // The main class of the application
 }
